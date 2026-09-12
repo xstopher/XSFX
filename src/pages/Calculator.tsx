@@ -32,8 +32,8 @@ function fmt(n: number, d = 2) { return n.toLocaleString('en-US', { minimumFract
 function FieldLabel({ children, note }: { children: React.ReactNode; note?: string }) {
   return (
     <div className="flex items-baseline gap-1.5 mb-1.5">
-      <span className="font-mono text-[10px] tracking-widest uppercase text-[#6a6a7e] select-none">{children}</span>
-      {note && <span className="text-[10px] text-[#38384a] select-none">{note}</span>}
+      <span className="font-mono text-[10px] tracking-widest uppercase text-[#6a6a7e] select-none whitespace-nowrap">{children}</span>
+      {note && <span className="text-[10px] text-[#38384a] select-none whitespace-nowrap">{note}</span>}
     </div>
   );
 }
