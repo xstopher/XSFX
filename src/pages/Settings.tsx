@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { store, DEFAULT_SETTINGS, type Settings } from '../lib/store';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -25,6 +25,7 @@ export default function SettingsPage() {
   }));
   const [saved, setSaved] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(!isSupabaseConfigured);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authMode, setAuthMode] = useState<'signIn' | 'signUp'>('signIn');
@@ -37,7 +38,20 @@ export default function SettingsPage() {
     void Promise.all([
       store.hydrate(),
       store.getAuthUser().then(user => setUserEmail(user?.email ?? null)),
-    ]).then(() => setS({ ...DEFAULT_SETTINGS, ...store.getSettings() }));
+    ]).then(() => {
+      setS({ ...DEFAULT_SETTINGS, ...store.getSettings() });
+      setAuthLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user;
+      setUserEmail(user && !user.is_anonymous ? user.email ?? null : null);
+      setAuthLoaded(true);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -145,6 +159,8 @@ export default function SettingsPage() {
               <p className="text-[11px] text-[#6a6a7e] leading-relaxed">
                 Cloud login is not configured for this deployment. Add the Supabase environment variables in Vercel to enable account sync.
               </p>
+            ) : !authLoaded ? (
+              <p className="text-[11px] text-[#6a6a7e]">Checking account status...</p>
             ) : userEmail ? (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
