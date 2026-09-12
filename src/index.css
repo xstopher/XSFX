@@ -104,14 +104,14 @@ select { appearance: none; }
   gap: 14px;
   background: #09090c;
   pointer-events: none;
-  animation: launchFade 0.65s ease 0.25s forwards;
+  animation: launchFade 1.1s ease 0.35s forwards;
 }
 
 .app-launch-mark {
   position: relative;
   width: 28px;
   height: 28px;
-  animation: launchMark 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: launchMark 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .app-launch-square { position: absolute; inset: 0; }
@@ -125,7 +125,7 @@ select { appearance: none; }
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.16em;
-  animation: launchName 0.45s ease 0.12s both;
+  animation: launchName 0.7s ease 0.2s both;
 }
 
 @keyframes launchMark {
