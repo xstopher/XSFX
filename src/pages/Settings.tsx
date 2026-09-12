@@ -131,7 +131,8 @@ export default function SettingsPage() {
         <p className="text-xs text-[#38384a] mt-0.5">Defaults applied to every new calculation.</p>
       </div>
 
-      <div className="flex-1 px-6 py-6 max-w-[560px] flex flex-col gap-8">
+      <div className="flex-1 px-6 py-6 w-full max-w-[1180px] grid grid-cols-1 lg:grid-cols-[minmax(0,560px)_minmax(280px,1fr)] gap-10 items-start overflow-y-auto">
+        <div className="flex flex-col gap-8 min-w-0">
 
         {/* App installation */}
         <section>
@@ -298,6 +299,43 @@ export default function SettingsPage() {
             ))}
           </div>
         </section>
+        </div>
+
+        <aside className="lg:sticky lg:top-6 flex flex-col gap-6 min-w-0">
+          <section className="border border-[#1f1f2a] bg-[#0b0b0f] p-5">
+            <div className="font-mono text-[10px] tracking-widest uppercase text-[#c4a25a] mb-5 pb-2 border-b border-[#1f1f2a]">
+              Risk Overview
+            </div>
+            <div className="grid grid-cols-2 gap-px bg-[#1f1f2a]">
+              {[
+                { label: 'Account Balance', value: `$${s.accountBalance.toLocaleString('en-US')}` },
+                { label: 'Default Risk', value: `$${s.defaultRiskUsd.toLocaleString('en-US')}` },
+                { label: 'Risk Percentage', value: `${riskPct.toFixed(2)}%` },
+                { label: 'Max Lot Size', value: s.defaultMaxLot ? s.defaultMaxLot.toFixed(2) : 'No limit' },
+                { label: 'Instrument', value: s.defaultInstrument },
+                { label: 'Journal Trades', value: String(store.getJournal().length) },
+              ].map(({ label, value }) => (
+                <div key={label} className="bg-[#09090c] px-4 py-3">
+                  <span className="font-mono text-[9px] tracking-widest uppercase text-[#38384a] block mb-1">{label}</span>
+                  <span className="font-mono text-sm text-[#e0dfd8] break-words">{value}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="border border-[#1f1f2a] bg-[#0b0b0f] p-5">
+            <div className="font-mono text-[10px] tracking-widest uppercase text-[#c4a25a] mb-5 pb-2 border-b border-[#1f1f2a]">
+              Cloud Status
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`w-1.5 h-1.5 rounded-full ${isSupabaseConfigured ? 'bg-[#4a9e72]' : 'bg-[#c47c40]'}`} />
+              <span className="font-mono text-xs text-[#e0dfd8]">{isSupabaseConfigured ? userEmail ? 'Account synced' : 'Cloud available' : 'Local storage only'}</span>
+            </div>
+            <p className="text-[11px] text-[#6a6a7e] leading-relaxed">
+              {userEmail ? 'Your settings and journal are available on signed-in devices.' : 'Sign in above to carry settings and journal history across devices.'}
+            </p>
+          </section>
+        </aside>
       </div>
 
       {/* Save bar */}
