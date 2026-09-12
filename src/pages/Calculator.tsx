@@ -23,6 +23,9 @@ const INSTRUMENTS: Instrument[] = [
 ];
 
 function roundLot(n: number) { return Math.round(n * 100) / 100; }
+function toPips(priceDistance: number, pipSize: number) {
+  return Math.round((priceDistance / pipSize) * 10) / 10;
+}
 function fmt(n: number, d = 2) { return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
 
 // ─── Tiny UI atoms ────────────────────────────────────────────────────────────
@@ -89,14 +92,14 @@ export default function Calculator() {
     if (!e || !s || !r || r <= 0 || isNaN(r)) return null;
     const slDiff = Math.abs(e - s);
     if (slDiff === 0) return null;
-    const slPips = slDiff / instrument.pipSize;
+    const slPips = toPips(slDiff, instrument.pipSize);
     const rawLot = r / (slPips * pv);
     const lot = roundLot(rawLot);
     const actualRisk = lot * slPips * pv;
     const isLong = s < e;
     let tpPips: number | null = null, profit: number | null = null, rr: number | null = null;
     if (t && !isNaN(t)) {
-      tpPips = Math.abs(t - e) / instrument.pipSize;
+      tpPips = toPips(Math.abs(t - e), instrument.pipSize);
       profit = lot * tpPips * pv;
       rr = tpPips / slPips;
     }
