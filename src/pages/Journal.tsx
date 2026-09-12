@@ -101,7 +101,7 @@ export default function Journal() {
       </div>
 
       {/* Filter tabs */}
-      <div className="px-6 py-3 border-b border-[#1f1f2a] bg-[#09090c] flex-shrink-0 flex gap-1">
+      <div className="px-6 py-3 border-b border-[#1f1f2a] bg-[#09090c] flex-shrink-0 flex justify-center gap-1">
         {FILTERS.map(f => (
           <button
             key={f}
@@ -119,7 +119,7 @@ export default function Journal() {
       </div>
 
       {filter === 'PARTIAL' && (
-        <div className="px-6 py-2 border-b border-[#1f1f2a] bg-[#09090c] flex gap-1">
+        <div className="px-6 py-2 border-b border-[#1f1f2a] bg-[#09090c] flex justify-center gap-1">
           {(['ALL', 'WIN', 'LOSS'] as const).map(partialStatus => (
             <button
               key={partialStatus}
