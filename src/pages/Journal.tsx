@@ -74,7 +74,7 @@ export default function Journal() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[#1f1f2a]">
           {[
             { label: 'Total Trades', value: String(trades.length), color: 'text-[#e0dfd8]' },
-            { label: 'Profitable Rate', value: profitableRate !== null ? `${fmt(profitableRate, 1)}%` : '—', color: profitableRate !== null && profitableRate >= 50 ? 'text-[#4a9e72]' : 'text-[#e0dfd8]' },
+            { label: 'Profitable Rate', value: profitableRate !== null ? `${fmt(profitableRate, 1)}%` : '—', color: profitableRate === null ? 'text-[#e0dfd8]' : profitableRate >= 70 ? 'text-[#4a9e72]' : profitableRate >= 40 ? 'text-[#c47c40]' : 'text-[#b84040]' },
             { label: 'Total Risked', value: `$${fmt(totalRisk)}`, color: 'text-[#e0dfd8]' },
             {
               label: 'Net P&L',
