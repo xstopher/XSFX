@@ -16,7 +16,7 @@ export interface TradeEntry {
   tpPips?: number;
   profit?: number;
   rr?: number;
-  outcome?: 'WIN' | 'LOSS' | 'BE';
+  outcome?: 'WIN' | 'LOSS' | 'BE' | 'PARTIAL';
 }
 
 export interface Settings {
@@ -76,6 +76,20 @@ async function sync() {
   });
 }
 
+async function mergeAccountState(userId: string) {
+  const { data, error } = await supabase!.from('app_state')
+    .select('settings, journal').eq('user_id', userId).maybeSingle();
+  if (error) throw error;
+
+  const localJournal = load<TradeEntry[]>('psc_journal', []);
+  const remoteJournal = Array.isArray(data?.journal) ? data.journal as TradeEntry[] : [];
+  const mergedJournal = new Map(remoteJournal.map(trade => [trade.id, trade]));
+  localJournal.forEach(trade => mergedJournal.set(trade.id, trade));
+  save('psc_journal', [...mergedJournal.values()].sort((a, b) => b.ts - a.ts));
+  if (data?.settings) save('psc_settings', data.settings);
+  await sync();
+}
+
 export const store = {
   getSettings: (): Settings => load('psc_settings', DEFAULT_SETTINGS),
   saveSettings: (s: Settings) => { save('psc_settings', s); void sync(); },
@@ -88,6 +102,11 @@ export const store = {
   updateOutcome: (id: string, outcome: TradeEntry['outcome']) => {
     const j = load<TradeEntry[]>('psc_journal', []);
     save('psc_journal', j.map(t => t.id === id ? { ...t, outcome } : t));
+    void sync();
+  },
+  updateTrade: (id: string, changes: Pick<TradeEntry, 'outcome' | 'profit'>) => {
+    const j = load<TradeEntry[]>('psc_journal', []);
+    save('psc_journal', j.map(t => t.id === id ? { ...t, ...changes } : t));
     void sync();
   },
   deleteTrade: (id: string) => {
@@ -118,7 +137,7 @@ export const store = {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     userIdPromise = Promise.resolve(data.user.id);
-    await sync();
+    await mergeAccountState(data.user.id);
     return { id: data.user.id, email: data.user.email } satisfies AuthUser;
   },
   signUp: async (email: string, password: string) => {
@@ -127,7 +146,7 @@ export const store = {
     if (error) throw error;
     if (data.session && data.user) {
       userIdPromise = Promise.resolve(data.user.id);
-      await sync();
+      await mergeAccountState(data.user.id);
     }
     return Boolean(data.session);
   },
