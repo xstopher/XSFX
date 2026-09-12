@@ -50,6 +50,8 @@ function save(key: string, value: unknown) {
 
 let userIdPromise: Promise<string | null> | null = null;
 
+export type AuthUser = { id: string; email?: string };
+
 async function getUserId() {
   if (!supabase) return null;
   if (!userIdPromise) {
@@ -105,5 +107,34 @@ export const store = {
     }
     if (data.settings) save('psc_settings', data.settings);
     if (Array.isArray(data.journal)) save('psc_journal', data.journal);
+  },
+  getAuthUser: async (): Promise<AuthUser | null> => {
+    if (!supabase) return null;
+    const { data: { user } } = await supabase.auth.getUser();
+    return user && !user.is_anonymous ? { id: user.id, email: user.email } : null;
+  },
+  signIn: async (email: string, password: string) => {
+    if (!supabase) throw new Error('Cloud storage is not configured.');
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    userIdPromise = Promise.resolve(data.user.id);
+    await sync();
+    return { id: data.user.id, email: data.user.email } satisfies AuthUser;
+  },
+  signUp: async (email: string, password: string) => {
+    if (!supabase) throw new Error('Cloud storage is not configured.');
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+    if (data.session && data.user) {
+      userIdPromise = Promise.resolve(data.user.id);
+      await sync();
+    }
+    return Boolean(data.session);
+  },
+  signOut: async () => {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    userIdPromise = null;
   },
 };

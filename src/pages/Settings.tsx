@@ -19,10 +19,46 @@ export default function SettingsPage() {
     ...store.getSettings(),
   }));
   const [saved, setSaved] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authMode, setAuthMode] = useState<'signIn' | 'signUp'>('signIn');
+  const [authMessage, setAuthMessage] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
 
   useEffect(() => {
-    void store.hydrate().then(() => setS({ ...DEFAULT_SETTINGS, ...store.getSettings() }));
+    void Promise.all([
+      store.hydrate(),
+      store.getAuthUser().then(user => setUserEmail(user?.email ?? null)),
+    ]).then(() => setS({ ...DEFAULT_SETTINGS, ...store.getSettings() }));
   }, []);
+
+  async function submitAuth() {
+    setAuthBusy(true);
+    setAuthMessage('');
+    try {
+      if (authMode === 'signIn') {
+        const user = await store.signIn(email, password);
+        setUserEmail(user.email ?? email);
+        setPassword('');
+        setAuthMessage('Signed in. Your settings and journal are synced.');
+      } else {
+        const hasSession = await store.signUp(email, password);
+        setAuthMessage(hasSession ? 'Account created and synced.' : 'Check your email to confirm your account.');
+        if (hasSession) setUserEmail(email);
+      }
+    } catch (error) {
+      setAuthMessage(error instanceof Error ? error.message : 'Authentication failed.');
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  async function signOut() {
+    await store.signOut();
+    setUserEmail(null);
+    setAuthMessage('Signed out. Local storage remains available on this device.');
+  }
 
   function upd<K extends keyof Settings>(k: K, v: Settings[K]) {
     setS(prev => ({ ...prev, [k]: v }));
@@ -55,6 +91,42 @@ export default function SettingsPage() {
       </div>
 
       <div className="flex-1 px-6 py-6 max-w-[560px] flex flex-col gap-8">
+
+        {/* Account sync */}
+        {isSupabaseConfigured && (
+          <section>
+            <div className="font-mono text-[10px] tracking-widest uppercase text-[#c4a25a] mb-4 pb-2 border-b border-[#1f1f2a]">
+              Cloud Account
+            </div>
+            {userEmail ? (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="font-mono text-xs text-[#e0dfd8]">{userEmail}</div>
+                  <div className="text-[11px] text-[#38384a] mt-1">Settings and journal sync across devices.</div>
+                </div>
+                <button onClick={signOut} className="font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-[#1f1f2a] text-[#6a6a7e] hover:border-[#2a2a38] hover:text-[#aaa]" style={{ borderRadius: 0 }}>
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={e => { e.preventDefault(); void submitAuth(); }} className="flex flex-col gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address" required className={inputCls} style={{ borderRadius: 0 }} />
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password (6+ characters)" minLength={6} required className={inputCls} style={{ borderRadius: 0 }} />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button type="submit" disabled={authBusy} className="font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-[#c4a25a]/40 text-[#c4a25a] hover:bg-[#c4a25a]/8 disabled:opacity-50" style={{ borderRadius: 0 }}>
+                    {authBusy ? 'Please wait' : authMode === 'signIn' ? 'Sign In' : 'Create Account'}
+                  </button>
+                  <button type="button" onClick={() => setAuthMode(authMode === 'signIn' ? 'signUp' : 'signIn')} className="font-mono text-[10px] text-[#6a6a7e] hover:text-[#aaa]">
+                    {authMode === 'signIn' ? 'Create an account' : 'Already have an account? Sign in'}
+                  </button>
+                </div>
+                {authMessage && <p className="text-[11px] text-[#6a6a7e]">{authMessage}</p>}
+              </form>
+            )}
+          </section>
+        )}
 
         {/* Account */}
         <section>
