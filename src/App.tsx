@@ -12,6 +12,7 @@ export default function App() {
           <div className="app-launch-square app-launch-square-inner" />
         </div>
         <span className="app-launch-name">XSFX</span>
+        <span className="app-launch-credit">BY XS.TOPHER</span>
       </div>
     </>
   );
