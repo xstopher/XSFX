@@ -104,7 +104,7 @@ select { appearance: none; }
   gap: 14px;
   background: #09090c;
   pointer-events: none;
-  animation: launchFade 2s ease 0.5s forwards;
+  animation: launchFade 2s ease forwards;
 }
 
 .app-launch-mark {
