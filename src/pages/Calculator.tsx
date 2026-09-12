@@ -12,7 +12,7 @@ interface Instrument {
 }
 
 const INSTRUMENTS: Instrument[] = [
-  { label: 'XAU/USD', pipSize: 0.01,   defaultPipValue: 1.0,  decimals: 2, isGold: true, placeholder: ['2350.00','2330.00','2390.00'] },
+  { label: 'XAU/USD', pipSize: 0.10,   defaultPipValue: 10.0, decimals: 2, isGold: true, placeholder: ['2350.00','2330.00','2390.00'] },
   { label: 'EUR/USD', pipSize: 0.0001, defaultPipValue: 10.0, decimals: 5, placeholder: ['1.08500','1.08000','1.09500'] },
   { label: 'GBP/USD', pipSize: 0.0001, defaultPipValue: 10.0, decimals: 5, placeholder: ['1.27000','1.26500','1.28000'] },
   { label: 'AUD/USD', pipSize: 0.0001, defaultPipValue: 10.0, decimals: 5, placeholder: ['0.65000','0.64500','0.66000'] },
