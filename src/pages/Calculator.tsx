@@ -276,7 +276,7 @@ export default function Calculator() {
             </p>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col p-6 lg:p-8 gap-5 overflow-y-auto">
+          <div className="flex-1 flex flex-col px-6 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:p-8 gap-5 overflow-y-auto">
 
             {/* Warnings */}
             {calc.warnings.length > 0 && (
