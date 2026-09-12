@@ -20,7 +20,8 @@ const OUTCOME_CONFIG = {
 
 export default function Journal() {
   const [trades, setTrades] = useState<TradeEntry[]>([]);
-  const [filter, setFilter] = useState<'ALL' | 'WIN' | 'LOSS' | 'BE' | 'PARTIAL' | 'OPEN'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'WIN' | 'LOSS' | 'BE' | 'PARTIAL'>('ALL');
+  const [partialFilter, setPartialFilter] = useState<'ALL' | 'WIN' | 'LOSS'>('ALL');
   const [profitDrafts, setProfitDrafts] = useState<Record<string, string>>({});
   const [partialModes, setPartialModes] = useState<Record<string, 'profit' | 'loss'>>({});
 
@@ -52,8 +53,11 @@ export default function Journal() {
 
   const filtered = trades.filter(t => {
     if (filter === 'ALL') return true;
-    if (filter === 'OPEN') return !t.outcome;
-    return t.outcome === filter;
+    if (filter !== 'PARTIAL') return t.outcome === filter;
+    if (t.outcome !== 'PARTIAL') return false;
+    if (partialFilter === 'WIN') return (t.profit ?? 0) > 0;
+    if (partialFilter === 'LOSS') return (t.profit ?? 0) < 0;
+    return true;
   });
 
   // Stats
@@ -68,7 +72,7 @@ export default function Journal() {
     + partials.reduce((s, t) => s + (t.profit ?? 0), 0)
     - losses.reduce((s, t) => s + t.riskUsd, 0);
 
-  const FILTERS: Array<typeof filter> = ['ALL', 'OPEN', 'WIN', 'LOSS', 'PARTIAL', 'BE'];
+  const FILTERS: Array<typeof filter> = ['ALL', 'WIN', 'LOSS', 'PARTIAL', 'BE'];
 
   return (
     <div className="flex flex-col h-full page-enter">
@@ -113,6 +117,25 @@ export default function Journal() {
           </button>
         ))}
       </div>
+
+      {filter === 'PARTIAL' && (
+        <div className="px-6 py-2 border-b border-[#1f1f2a] bg-[#09090c] flex gap-1">
+          {(['ALL', 'WIN', 'LOSS'] as const).map(partialStatus => (
+            <button
+              key={partialStatus}
+              onClick={() => setPartialFilter(partialStatus)}
+              className={`font-mono text-[10px] tracking-widest uppercase px-3 py-1 border transition-all duration-100 select-none
+                ${partialFilter === partialStatus
+                  ? 'border-[#c4a25a]/50 text-[#c4a25a] bg-[#c4a25a]/8'
+                  : 'border-[#1f1f2a] text-[#6a6a7e] hover:border-[#2a2a38] hover:text-[#aaa] bg-transparent'
+                }`}
+              style={{ borderRadius: 0 }}
+            >
+              {partialStatus}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Trade list */}
       <div className="flex-1 overflow-y-auto">
