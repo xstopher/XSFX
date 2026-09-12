@@ -93,12 +93,15 @@ export default function SettingsPage() {
       <div className="flex-1 px-6 py-6 max-w-[560px] flex flex-col gap-8">
 
         {/* Account sync */}
-        {isSupabaseConfigured && (
-          <section>
+        <section>
             <div className="font-mono text-[10px] tracking-widest uppercase text-[#c4a25a] mb-4 pb-2 border-b border-[#1f1f2a]">
               Cloud Account
             </div>
-            {userEmail ? (
+            {!isSupabaseConfigured ? (
+              <p className="text-[11px] text-[#6a6a7e] leading-relaxed">
+                Cloud login is not configured for this deployment. Add the Supabase environment variables in Vercel to enable account sync.
+              </p>
+            ) : userEmail ? (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <div className="font-mono text-xs text-[#e0dfd8]">{userEmail}</div>
@@ -125,8 +128,7 @@ export default function SettingsPage() {
                 {authMessage && <p className="text-[11px] text-[#6a6a7e]">{authMessage}</p>}
               </form>
             )}
-          </section>
-        )}
+        </section>
 
         {/* Account */}
         <section>
