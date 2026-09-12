@@ -92,3 +92,60 @@ select { appearance: none; }
   to   { opacity: 1; transform: translateY(0); }
 }
 .page-enter { animation: fadeSlide 0.2s ease forwards; }
+
+/* Brief branded reveal while the app shell initializes. */
+.app-launch {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: #09090c;
+  pointer-events: none;
+  animation: launchFade 0.65s ease 0.25s forwards;
+}
+
+.app-launch-mark {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  animation: launchMark 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.app-launch-square { position: absolute; inset: 0; }
+.app-launch-square-outer { border: 1px solid rgba(196, 162, 90, 0.5); }
+.app-launch-square-mid { inset: 5px; background: rgba(196, 162, 90, 0.2); }
+.app-launch-square-inner { inset: 10px; background: #c4a25a; }
+
+.app-launch-name {
+  color: #e0dfd8;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  animation: launchName 0.45s ease 0.12s both;
+}
+
+@keyframes launchMark {
+  from { opacity: 0; transform: scale(0.65) rotate(-8deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes launchName {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes launchFade {
+  from { opacity: 1; visibility: visible; }
+  to { opacity: 0; visibility: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-launch,
+  .app-launch-mark,
+  .app-launch-name { animation: none; }
+  .app-launch { opacity: 0; visibility: hidden; }
+}
