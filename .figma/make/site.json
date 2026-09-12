@@ -1,4 +1,5 @@
 {
+  "title": "XSFX",
   "description": "Calculate precise forex and gold trade sizes instantly with clear risk metrics and alerts, designed for fast decisions in volatile markets.",
   "robots": {
     "index": false
