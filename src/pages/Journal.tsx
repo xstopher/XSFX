@@ -22,6 +22,7 @@ export default function Journal() {
   const [trades, setTrades] = useState<TradeEntry[]>([]);
   const [filter, setFilter] = useState<'ALL' | 'WIN' | 'LOSS' | 'BE' | 'PARTIAL' | 'OPEN'>('ALL');
   const [profitDrafts, setProfitDrafts] = useState<Record<string, string>>({});
+  const [partialModes, setPartialModes] = useState<Record<string, 'profit' | 'loss'>>({});
 
   function refresh() { setTrades(store.getJournal()); }
   useEffect(() => {
@@ -42,6 +43,11 @@ export default function Journal() {
     if (!Number.isFinite(value)) return;
     store.updateTrade(id, { outcome: 'PARTIAL', profit: value });
     refresh();
+  }
+
+  function beginPartial(id: string, mode: 'profit' | 'loss') {
+    setPartialModes(modes => ({ ...modes, [id]: mode }));
+    setProfitDrafts(drafts => ({ ...drafts, [id]: '' }));
   }
 
   const filtered = trades.filter(t => {
@@ -178,14 +184,13 @@ export default function Journal() {
                     <div className="flex flex-col gap-1.5 flex-shrink-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                       {!trade.outcome ? (
                         <>
-                          {(['WIN', 'LOSS', 'BE', 'PARTIAL'] as const).map(o => (
+                          {(['WIN', 'LOSS', 'BE'] as const).map(o => (
                             <button
                               key={o}
                               onClick={() => setOutcome(trade.id, o)}
                               className={`font-mono text-[10px] px-2.5 py-1 border transition-colors select-none
                                 ${o === 'WIN' ? 'border-[#4a9e72]/30 text-[#4a9e72] hover:bg-[#4a9e72]/10'
                                   : o === 'LOSS' ? 'border-[#b84040]/30 text-[#b84040] hover:bg-[#b84040]/10'
-                                  : o === 'PARTIAL' ? 'border-[#c4a25a]/30 text-[#c4a25a] hover:bg-[#c4a25a]/10'
                                   : 'border-[#2a2a38] text-[#6a6a7e] hover:bg-[#1f1f2a]'}`}
                               style={{ borderRadius: 0 }}
                             >
@@ -193,20 +198,28 @@ export default function Journal() {
                             </button>
                           ))}
                           <button
-                            onClick={() => setProfitDrafts(drafts => ({ ...drafts, [trade.id]: drafts[trade.id] ?? '' }))}
-                            className="font-mono text-[10px] px-2.5 py-1 border border-[#c4a25a]/30 text-[#c4a25a] hover:bg-[#c4a25a]/10 transition-colors"
+                            onClick={() => beginPartial(trade.id, 'profit')}
+                            className="font-mono text-[10px] px-2.5 py-1 border border-[#4a9e72]/30 text-[#4a9e72] hover:bg-[#4a9e72]/10 transition-colors"
                             style={{ borderRadius: 0 }}
                           >
-                            PARTIAL
+                            PARTIAL WIN
+                          </button>
+                          <button
+                            onClick={() => beginPartial(trade.id, 'loss')}
+                            className="font-mono text-[10px] px-2.5 py-1 border border-[#b84040]/30 text-[#b84040] hover:bg-[#b84040]/10 transition-colors"
+                            style={{ borderRadius: 0 }}
+                          >
+                            PARTIAL LOSS
                           </button>
                           {Object.prototype.hasOwnProperty.call(profitDrafts, trade.id) && (
                             <div className="flex flex-col gap-1 mt-1">
+                              <span className="font-mono text-[9px] text-[#6a6a7e] uppercase">Realized {partialModes[trade.id] === 'loss' ? 'loss' : 'profit'}</span>
                               <input
                                 type="number"
                                 step="0.01"
                                 value={profitDrafts[trade.id]}
                                 onChange={event => setProfitDrafts(drafts => ({ ...drafts, [trade.id]: event.target.value }))}
-                                placeholder="Profit made"
+                                placeholder={partialModes[trade.id] === 'loss' ? '-25.00' : '25.00'}
                                 className="font-mono text-[10px] w-24 px-2 py-1 bg-[#0f0f14] border border-[#c4a25a]/30 text-[#e0dfd8] focus:outline-none"
                                 style={{ borderRadius: 0 }}
                               />
@@ -224,7 +237,10 @@ export default function Journal() {
                         <>
                           {trade.outcome === 'PARTIAL' && (
                             <button
-                              onClick={() => setProfitDrafts(drafts => ({ ...drafts, [trade.id]: String(trade.profit ?? '') }))}
+                              onClick={() => {
+                                setPartialModes(modes => ({ ...modes, [trade.id]: (trade.profit ?? 0) < 0 ? 'loss' : 'profit' }));
+                                setProfitDrafts(drafts => ({ ...drafts, [trade.id]: String(trade.profit ?? '') }));
+                              }}
                               className="font-mono text-[10px] px-2.5 py-1 border border-[#c4a25a]/30 text-[#c4a25a] hover:bg-[#c4a25a]/10 transition-colors"
                               style={{ borderRadius: 0 }}
                             >
