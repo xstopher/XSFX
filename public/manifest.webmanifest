@@ -1,0 +1,18 @@
+{
+  "name": "XSFX Position Calculator",
+  "short_name": "XSFX",
+  "description": "Forex and gold position-size calculator with risk metrics and trade journal.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#09090c",
+  "theme_color": "#09090c",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
