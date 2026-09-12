@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { store, DEFAULT_SETTINGS, type Settings } from '../lib/store';
 import { isSupabaseConfigured } from '../lib/supabase';
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+};
+
 const INSTRUMENTS = ['XAU/USD','EUR/USD','GBP/USD','AUD/USD','NZD/USD','USD/JPY','USD/CHF','USD/CAD'];
 
 function FieldLabel({ children, desc }: { children: React.ReactNode; desc?: string }) {
@@ -25,6 +30,8 @@ export default function SettingsPage() {
   const [authMode, setAuthMode] = useState<'signIn' | 'signUp'>('signIn');
   const [authMessage, setAuthMessage] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installMessage, setInstallMessage] = useState('');
 
   useEffect(() => {
     void Promise.all([
@@ -32,6 +39,26 @@ export default function SettingsPage() {
       store.getAuthUser().then(user => setUserEmail(user?.email ?? null)),
     ]).then(() => setS({ ...DEFAULT_SETTINGS, ...store.getSettings() }));
   }, []);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  async function installApp() {
+    if (!installPrompt) {
+      setInstallMessage('Use your browser menu and choose Install XSFX or Add to Home Screen.');
+      return;
+    }
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    setInstallMessage(choice.outcome === 'accepted' ? 'XSFX was installed.' : 'Installation was cancelled.');
+    setInstallPrompt(null);
+  }
 
   async function submitAuth() {
     setAuthBusy(true);
@@ -91,6 +118,23 @@ export default function SettingsPage() {
       </div>
 
       <div className="flex-1 px-6 py-6 max-w-[560px] flex flex-col gap-8">
+
+        {/* App installation */}
+        <section>
+          <div className="font-mono text-[10px] tracking-widest uppercase text-[#c4a25a] mb-4 pb-2 border-b border-[#1f1f2a]">
+            Install App
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="font-mono text-xs text-[#e0dfd8]">XSFX on your device</div>
+              <div className="text-[11px] text-[#38384a] mt-1">Open XSFX fullscreen from your home screen or desktop.</div>
+            </div>
+            <button onClick={() => void installApp()} className="font-mono text-[10px] uppercase tracking-widest px-3 py-2 border border-[#c4a25a]/40 text-[#c4a25a] hover:bg-[#c4a25a]/8" style={{ borderRadius: 0 }}>
+              Install XSFX
+            </button>
+          </div>
+          {installMessage && <p className="text-[11px] text-[#6a6a7e] mt-3">{installMessage}</p>}
+        </section>
 
         {/* Account sync */}
         <section>
