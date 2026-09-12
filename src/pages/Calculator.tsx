@@ -104,6 +104,7 @@ export default function Calculator() {
       rr = tpPips / slPips;
     }
     const warnings: string[] = [];
+    if (lot < 0.01) warnings.push('Risk amount is too small for the minimum lot size of 0.01.');
     if (isLong ? s >= e : s <= e) warnings.push('Stop loss is on the wrong side of entry.');
     if (t && !isNaN(t) && (isLong ? t <= e : t >= e)) warnings.push('Take profit is on the wrong side of entry.');
     if (lot > ml) warnings.push(`Lot size ${fmt(lot)} exceeds broker max (${ml}).`);
@@ -111,7 +112,7 @@ export default function Calculator() {
   }, [entry, sl, tp, risk, customPipValue, maxLot, instrIdx, instrument]);
 
   function saveTrade() {
-    if (!calc) return;
+    if (!calc || calc.lot < 0.01) return;
     const t: TradeEntry = {
       id: crypto.randomUUID(),
       ts: Date.now(),
@@ -364,8 +365,11 @@ export default function Calculator() {
             <div className="mt-auto pt-2">
               <button
                 onClick={saveTrade}
+                disabled={calc.lot < 0.01}
                 className={`w-full font-mono text-xs tracking-widest uppercase py-3 border transition-all duration-150 select-none
-                  ${saved
+                  ${calc.lot < 0.01
+                    ? 'border-[#1f1f2a] text-[#38384a] bg-[#0f0f14] cursor-not-allowed'
+                    : saved
                     ? 'border-[#4a9e72]/50 text-[#4a9e72] bg-[#4a9e72]/5'
                     : 'border-[#2a2a38] text-[#6a6a7e] hover:border-[#c4a25a]/40 hover:text-[#c4a25a] bg-[#0f0f14]'
                   }`}
