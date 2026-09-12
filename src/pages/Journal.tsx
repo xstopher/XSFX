@@ -54,8 +54,9 @@ export default function Journal() {
   const closed = trades.filter(t => t.outcome);
   const wins = trades.filter(t => t.outcome === 'WIN');
   const losses = trades.filter(t => t.outcome === 'LOSS');
+  const profitable = closed.filter(t => (t.profit ?? 0) > 0);
   const totalRisk = trades.reduce((s, t) => s + t.riskUsd, 0);
-  const winRate = closed.length > 0 ? (wins.length / closed.length) * 100 : null;
+  const profitableRate = closed.length > 0 ? (profitable.length / closed.length) * 100 : null;
   const partials = trades.filter(t => t.outcome === 'PARTIAL');
   const netPnl = wins.reduce((s, t) => s + (t.profit ?? 0), 0)
     + partials.reduce((s, t) => s + (t.profit ?? 0), 0)
@@ -73,7 +74,7 @@ export default function Journal() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[#1f1f2a]">
           {[
             { label: 'Total Trades', value: String(trades.length), color: 'text-[#e0dfd8]' },
-            { label: 'Win Rate', value: winRate !== null ? `${fmt(winRate, 1)}%` : '—', color: winRate !== null && winRate >= 50 ? 'text-[#4a9e72]' : 'text-[#e0dfd8]' },
+            { label: 'Profitable Rate', value: profitableRate !== null ? `${fmt(profitableRate, 1)}%` : '—', color: profitableRate !== null && profitableRate >= 50 ? 'text-[#4a9e72]' : 'text-[#e0dfd8]' },
             { label: 'Total Risked', value: `$${fmt(totalRisk)}`, color: 'text-[#e0dfd8]' },
             {
               label: 'Net P&L',
@@ -122,6 +123,9 @@ export default function Journal() {
           <div className="divide-y divide-[#1f1f2a]">
             {filtered.map(trade => {
               const cfg = trade.outcome ? OUTCOME_CONFIG[trade.outcome] : null;
+              const partialIsProfit = trade.outcome === 'PARTIAL' && (trade.profit ?? 0) > 0;
+              const partialIsLoss = trade.outcome === 'PARTIAL' && (trade.profit ?? 0) < 0;
+              const outcomeLabel = partialIsProfit ? 'PARTIAL WIN' : partialIsLoss ? 'PARTIAL LOSS' : cfg?.label;
               return (
                 <div key={trade.id} className="px-6 py-4 hover:bg-[#0f0f14] transition-colors group">
                   <div className="flex items-start justify-between gap-4">
@@ -140,7 +144,7 @@ export default function Journal() {
                         {cfg ? (
                           <span className={`font-mono text-[10px] px-1.5 py-0.5 border ${cfg.border} ${cfg.color} ${cfg.bg}`}
                             style={{ borderRadius: 0 }}>
-                            {cfg.label}
+                            {outcomeLabel}
                           </span>
                         ) : (
                           <span className="font-mono text-[10px] px-1.5 py-0.5 border border-[#2a2a38] text-[#38384a]"
@@ -158,7 +162,7 @@ export default function Journal() {
                           { label: 'Risk', value: `$${fmt(trade.riskUsd)}` },
                           ...(trade.tpPips ? [{ label: 'TP Pips', value: fmt(trade.tpPips, 1) }] : []),
                           ...(trade.rr ? [{ label: 'R:R', value: `1:${fmt(trade.rr, 2)}` }] : []),
-                          ...(trade.profit !== undefined ? [{ label: trade.outcome === 'PARTIAL' ? 'Profit Made' : 'Target $', value: `$${fmt(trade.profit)}` }] : []),
+                          ...(trade.profit !== undefined ? [{ label: trade.outcome === 'PARTIAL' ? 'Realized P&L' : 'Target $', value: `${trade.profit >= 0 ? '+' : '-'}$${fmt(Math.abs(trade.profit))}` }] : []),
                         ].map(({ label, value }) => (
                           <div key={label}>
                             <span className="font-mono text-[9px] tracking-widest uppercase text-[#38384a] block">{label}</span>
@@ -174,13 +178,14 @@ export default function Journal() {
                     <div className="flex flex-col gap-1.5 flex-shrink-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                       {!trade.outcome ? (
                         <>
-                          {(['WIN', 'LOSS', 'BE'] as const).map(o => (
+                          {(['WIN', 'LOSS', 'BE', 'PARTIAL'] as const).map(o => (
                             <button
                               key={o}
                               onClick={() => setOutcome(trade.id, o)}
                               className={`font-mono text-[10px] px-2.5 py-1 border transition-colors select-none
                                 ${o === 'WIN' ? 'border-[#4a9e72]/30 text-[#4a9e72] hover:bg-[#4a9e72]/10'
                                   : o === 'LOSS' ? 'border-[#b84040]/30 text-[#b84040] hover:bg-[#b84040]/10'
+                                  : o === 'PARTIAL' ? 'border-[#c4a25a]/30 text-[#c4a25a] hover:bg-[#c4a25a]/10'
                                   : 'border-[#2a2a38] text-[#6a6a7e] hover:bg-[#1f1f2a]'}`}
                               style={{ borderRadius: 0 }}
                             >
@@ -216,13 +221,24 @@ export default function Journal() {
                           )}
                         </>
                       ) : (
-                        <button
-                          onClick={() => setOutcome(trade.id, undefined)}
-                          className="font-mono text-[10px] px-2.5 py-1 border border-[#1f1f2a] text-[#38384a] hover:text-[#6a6a7e] hover:border-[#2a2a38] transition-colors"
-                          style={{ borderRadius: 0 }}
-                        >
-                          Reopen
-                        </button>
+                        <>
+                          {trade.outcome === 'PARTIAL' && (
+                            <button
+                              onClick={() => setProfitDrafts(drafts => ({ ...drafts, [trade.id]: String(trade.profit ?? '') }))}
+                              className="font-mono text-[10px] px-2.5 py-1 border border-[#c4a25a]/30 text-[#c4a25a] hover:bg-[#c4a25a]/10 transition-colors"
+                              style={{ borderRadius: 0 }}
+                            >
+                              Edit P&L
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setOutcome(trade.id, undefined)}
+                            className="font-mono text-[10px] px-2.5 py-1 border border-[#1f1f2a] text-[#38384a] hover:text-[#6a6a7e] hover:border-[#2a2a38] transition-colors"
+                            style={{ borderRadius: 0 }}
+                          >
+                            Reopen
+                          </button>
+                        </>
                       )}
                       <button
                         onClick={() => deleteTrade(trade.id)}
