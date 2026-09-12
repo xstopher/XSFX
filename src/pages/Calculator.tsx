@@ -267,13 +267,50 @@ export default function Calculator() {
         <div className="h-px bg-gradient-to-r from-transparent via-[#c4a25a]/30 to-transparent" />
 
         {!calc ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-4 p-10 text-center">
-            <div className="w-12 h-12 border border-[#1f1f2a] flex items-center justify-center opacity-50">
-              <div className="w-4 h-4 border border-[#c4a25a]/30" />
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="hidden lg:block w-full max-w-[520px] border border-[#1f1f2a] bg-[#09090c] p-6 text-left">
+              <div className="font-mono text-[10px] tracking-widest uppercase text-[#c4a25a] mb-5 pb-2 border-b border-[#1f1f2a]">
+                Risk Dashboard
+              </div>
+              <div className="grid grid-cols-2 gap-px bg-[#1f1f2a] mb-6">
+                {[
+                  { label: 'Instrument', value: instrument.label },
+                  { label: 'Pip Size', value: `${instrument.pipSize} / pip` },
+                  { label: 'Default Risk', value: `$${settings.defaultRiskUsd.toLocaleString('en-US')}` },
+                  { label: 'Max Lot', value: settings.defaultMaxLot ? settings.defaultMaxLot.toFixed(2) : 'No limit' },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-[#0b0b0f] px-4 py-3">
+                    <span className="font-mono text-[9px] tracking-widest uppercase text-[#38384a] block mb-1">{label}</span>
+                    <span className="font-mono text-sm text-[#e0dfd8]">{value}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="font-mono text-[10px] tracking-widest uppercase text-[#6a6a7e] mb-3">Trade Structure</div>
+              <div className="flex flex-col gap-2">
+                {[
+                  ['Take Profit', 'Potential reward'],
+                  ['Entry', 'Execution price'],
+                  ['Stop Loss', 'Defined risk'],
+                ].map(([label, description], index) => (
+                  <div key={label} className="flex items-center gap-3 border-l border-[#c4a25a]/40 pl-3 py-1">
+                    <span className="font-mono text-xs text-[#e0dfd8] w-24">{label}</span>
+                    <span className="text-[11px] text-[#6a6a7e]">{description}</span>
+                    {index < 2 && <span className="text-[#38384a] ml-auto">↓</span>}
+                  </div>
+                ))}
+              </div>
+              <p className="font-mono text-[10px] text-[#38384a] tracking-wider mt-6 pt-4 border-t border-[#1f1f2a]">
+                Enter entry + stop loss to calculate position size.
+              </p>
             </div>
-            <p className="font-mono text-[11px] text-[#38384a] tracking-wider leading-relaxed max-w-[240px]">
-              Enter entry + stop loss<br />to calculate position size
-            </p>
+            <div className="lg:hidden flex flex-col items-center justify-center gap-4 text-center">
+              <div className="w-12 h-12 border border-[#1f1f2a] flex items-center justify-center opacity-50">
+                <div className="w-4 h-4 border border-[#c4a25a]/30" />
+              </div>
+              <p className="font-mono text-[11px] text-[#38384a] tracking-wider leading-relaxed max-w-[240px]">
+                Enter entry + stop loss<br />to calculate position size
+              </p>
+            </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col px-6 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:p-8 gap-5 overflow-y-auto">
