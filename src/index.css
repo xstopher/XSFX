@@ -102,7 +102,7 @@ select { appearance: none; }
   align-items: center;
   justify-content: center;
   gap: 20px;
-  background: #09090c;
+  background: radial-gradient(circle at center, rgba(196, 162, 90, 0.12), transparent 34%), #09090c;
   pointer-events: none;
   animation: launchFade 3s ease forwards;
 }
@@ -115,12 +115,12 @@ select { appearance: none; }
 }
 
 .app-launch-square { position: absolute; inset: 0; }
-.app-launch-square-outer { border: 1px solid rgba(196, 162, 90, 0.5); }
-.app-launch-square-mid { inset: 5px; background: rgba(196, 162, 90, 0.2); }
-.app-launch-square-inner { inset: 10px; background: #c4a25a; }
+.app-launch-square-outer { border: 1px solid rgba(224, 190, 111, 0.85); box-shadow: 0 0 24px rgba(196, 162, 90, 0.28); }
+.app-launch-square-mid { inset: 5px; background: rgba(224, 190, 111, 0.35); }
+.app-launch-square-inner { inset: 10px; background: #e0be6f; box-shadow: 0 0 18px rgba(224, 190, 111, 0.6); }
 
 .app-launch-name {
-  color: #e0dfd8;
+  color: #fff7df;
   font-family: 'JetBrains Mono', monospace;
   font-size: 22px;
   font-weight: 500;
@@ -131,7 +131,7 @@ select { appearance: none; }
 .app-launch-credit {
   position: absolute;
   bottom: calc(24px + env(safe-area-inset-bottom));
-  color: #6a6a7e;
+  color: #c4a25a;
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   letter-spacing: 0.18em;
